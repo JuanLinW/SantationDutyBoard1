@@ -71,8 +71,8 @@
     <div id="dutyBoard" class="w-full max-w-5xl bg-white rounded-lg shadow-lg overflow-hidden">
         <!-- 标题区域 -->
         <div class="bg-primary text-white p-6 text-center">
-            <h2 class="text-[clamp(1.5rem,3vw,2.5rem)] font-bold mb-2 text-shadow">卫生值班牌</h2>
-            <p id="department" class="text-lg editable" contenteditable="false">行政部</p>
+            <h2 class="text-[clamp(1.5rem,3vw,2.5rem)] font-bold mb-2 text-shadow">今日我值班</h2>
+            <p id="department" class="text-lg editable" contenteditable="false">商办事业部</p>
         </div>
 
         <!-- 日期区域 -->
@@ -81,7 +81,34 @@
         </div>
 
         <!-- 人员区域 -->
-        <div class="p-8">
+            <div class="mb-12">
+            <!-- 顶部文字卡片 -->
+            <div class="bg-yellow-50 border-4 border-yellow-200 rounded-2xl p-8 text-center card-shadow mb-8 flex items-center justify-center h-32">
+                <p class="text-gray-800 text-4xl font-semibold">
+                发自内心的喜欢高于一切
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- 反馈卡片1 -->
+                <div class="bg-blue-50 border-4 border-blue-200 rounded-2xl p-8 text-center card-shadow flex items-center justify-center h-64">
+                <p class="text-gray-700 text-3xl editable" contenteditable="false">
+                    如果您对我们的服务不满意<br>如果您想对我们提意见
+                </p>
+                </div>
+
+                <!-- 反馈卡片2 -->
+                <div class="bg-blue-50 border-4 border-blue-200 rounded-2xl p-8 text-center card-shadow flex items-center justify-center h-64">
+                <p class="text-gray-700 text-3xl editable" contenteditable="false">
+                    请联系我们相关负责人员<br>我们会现场为您解决
+                </p>
+                </div>
+            </div>
+            </div>
+
+
+
+            
             <!-- 领导行 -->
             <div class="mb-12">
                 <h3 class="text-lg font-semibold text-gray-600 mb-4 flex items-center">
