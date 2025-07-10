@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>卫生值班牌</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#165DFF',
+                        secondary: '#E8F3FF',
+                        accent: '#0E42D2',
+                        neutral: '#F5F7FA',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .card-shadow {
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            }
+            .text-shadow {
+                text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+            }
+            .editable:hover {
+                background-color: rgba(22, 93, 255, 0.05);
+            }
+            .editable:focus {
+                outline: 2px solid #165DFF;
+                border-radius: 4px;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col items-center py-8 px-4">
+    <!-- 控制面板 -->
+    <div class="w-full max-w-5xl bg-white rounded-lg shadow-md p-4 mb-6 flex flex-wrap items-center justify-between gap-4">
+        <div class="flex items-center space-x-2">
+            <i class="fa fa-calendar-check-o text-primary text-2xl"></i>
+            <h1 class="text-[clamp(1.5rem,3vw,2rem)] font-bold text-gray-800">卫生值班牌管理系统</h1>
+        </div>
+        <div class="flex flex-wrap gap-3">
+            <button id="editBtn" class="bg-primary hover:bg-accent text-white px-4 py-2 rounded-lg transition-all duration-300 flex items-center">
+                <i class="fa fa-pencil mr-2"></i>编辑模式
+            </button>
+            <button id="saveBtn" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-all duration-300 flex items-center hidden">
+                <i class="fa fa-save mr-2"></i>保存更改
+            </button>
+            <button id="exportBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-all duration-300 flex items-center">
+                <i class="fa fa-file-pdf-o mr-2"></i>导出PDF
+            </button>
+            <button id="resetBtn" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-all duration-300 flex items-center">
+                <i class="fa fa-refresh mr-2"></i>重置
+            </button>
+        </div>
+    </div>    <!-- 值班牌主体内容 -->
+    <div id="dutyBoard" class="w-full max-w-5xl bg-white rounded-lg shadow-lg overflow-hidden">
+        <!-- 标题区域 -->
+        <div class="bg-primary text-white p-6 text-center">
+            <h2 class="text-[clamp(1.5rem,3vw,2.5rem)] font-bold mb-2 text-shadow">卫生值班牌</h2>
+            <p id="department" class="text-lg editable" contenteditable="false">行政部</p>
+        </div>
+
+        <!-- 日期区域 -->
+        <div class="bg-secondary p-3 text-center">
+            <p id="dateRange" class="text-gray-700 font-medium editable" contenteditable="false">2023年10月1日 - 2023年10月31日</p>
+        </div>
+
+        <!-- 人员区域 -->
+        <div class="p-8">
+            <!-- 领导行 -->
+            <div class="mb-12">
+                <h3 class="text-lg font-semibold text-gray-600 mb-4 flex items-center">
+                    <i class="fa fa-user-circle text-primary mr-2"></i>值班领导
+                </h3>
+                <div class="flex justify-center">
+                    <div class="leader-card w-64 bg-neutral rounded-xl p-6 card-shadow transition-all duration-300 hover:shadow-lg">
+                        <div class="relative mx-auto w-32 h-32 mb-4 rounded-full overflow-hidden border-4 border-primary bg-white flex items-center justify-center">
+                            <img id="leaderPhoto" src="https://picsum.photos/id/1005/200/200" alt="领导照片" class="w-full h-full object-cover">
+                            <div class="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-40 flex items-center justify-center transition-all duration-300 opacity-0 hover:opacity-100 change-photo">
+                                <i class="fa fa-camera text-white text-2xl"></i>
+                            </div>
+                        </div>
+                        <div class="text-center">
+                            <h4 class="text-xl font-bold text-gray-800 editable" contenteditable="false" data-role="leader-name">张明</h4>
+                            <p class="text-gray-600 mt-1 editable" contenteditable="false" data-role="leader-position">部门经理</p>
+                            <p class="text-sm text-gray-500 mt-2 editable" contenteditable="false" data-role="leader-responsibility">负责全面卫生监督工作</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 保洁员行 -->
+            <div>
+                <h3 class="text-lg font-semibold text-gray-600 mb-4 flex items-center">
+                    <i class="fa fa-users text-primary mr-2"></i>保洁人员
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <!-- 保洁员1 -->
+                    <div class="cleaner-card bg-neutral rounded-xl p-5 card-shadow transition-all duration-300 hover:shadow-lg">
+                        <div class="relative mx-auto w-24 h-24 mb-3 rounded-full overflow-hidden border-3 border-primary bg-white flex items-center justify-center">
+                            <img id="cleaner1Photo" src="https://picsum.photos/id/1027/150/150" alt="保洁员照片" class="w-full h-full object-cover">
+                            <div class="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-40 flex items-center justify-center transition-all duration-300 opacity-0 hover:opacity-100 change-photo">
+                                <i class="fa fa-camera text-white text-xl"></i>
+                            </div>
+                        </div>
+                        <div class="text-center">
+                            <h4 class="text-lg font-bold text-gray-800 editable" contenteditable="false" data-role="cleaner-name-1">李华</h4>
+                            <p class="text-gray-600 mt-1 editable" contenteditable="false" data-role="cleaner-area-1">一楼公共区域</p>
+                            <p class="text-xs text-gray-500 mt-2 editable" contenteditable="false" data-role="cleaner-schedule-1">周一、周四</p>
+                        </div>
+                    </div>
+
+                    <!-- 保洁员2 -->
+                    <div class="cleaner-card bg-neutral rounded-xl p-5 card-shadow transition-all duration-300 hover:shadow-lg">
+                        <div class="relative mx-auto w-24 h-24 mb-3 rounded-full overflow-hidden border-3 border-primary bg-white flex items-center justify-center">
+                            <img id="cleaner2Photo" src="https://picsum.photos/id/1062/150/150" alt="保洁员照片" class="w-full h-full object-cover">
+                            <div class="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-40 flex items-center justify-center transition-all duration-300 opacity-0 hover:opacity-100 change-photo">
+                                <i class="fa fa-camera text-white text-xl"></i>
+                            </div>
+                        </div>
+                        <div class="text-center">
+                            <h4 class="text-lg font-bold text-gray-800 editable" contenteditable="false" data-role="cleaner-name-2">王芳</h4>
+                            <p class="text-gray-600 mt-1 editable" contenteditable="false" data-role="cleaner-area-2">二楼办公区域</p>
+                            <p class="text-xs text-gray-500 mt-2 editable" contenteditable="false" data-role="cleaner-schedule-2">周二、周五</p>
+                        </div>
+                    </div>
+
+                    <!-- 保洁员3 -->
+                    <div class="cleaner-card bg-neutral rounded-xl p-5 card-shadow transition-all duration-300 hover:shadow-lg">
+                        <div class="relative mx-auto w-24 h-24 mb-3 rounded-full overflow-hidden border-3 border-primary bg-white flex items-center justify-center">
+                            <img id="cleaner3Photo" src="https://picsum.photos/id/1074/150/150" alt="保洁员照片" class="w-full h-full object-cover">
+                            <div class="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-40 flex items-center justify-center transition-all duration-300 opacity-0 hover:opacity-100 change-photo">
+                                <i class="fa fa-camera text-white text-xl"></i>
+                            </div>
+                        </div>
+                        <div class="text-center">
+                            <h4 class="text-lg font-bold text-gray-800 editable" contenteditable="false" data-role="cleaner-name-3">赵伟</h4>
+                            <p class="text-gray-600 mt-1 editable" contenteditable="false" data-role="cleaner-area-3">三楼及卫生间</p>
+                            <p class="text-xs text-gray-500 mt-2 editable" contenteditable="false" data-role="cleaner-schedule-3">周三、周六</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 底部信息 -->
+        <div class="bg-gray-50 border-t border-gray-200 p-4 text-center text-sm text-gray-500">
+            <p id="footerInfo" class="editable" contenteditable="false">卫生监督电话：010-12345678 | 值班时间：工作日 8:00-18:00</p>
+        </div>
+    </div>
+
+    <!-- 通知提示 -->
+    <div id="notification" class="fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg opacity-0 transition-opacity duration-300 flex items-center">
+        <i class="fa fa-check-circle mr-2"></i>
+        <span id="notificationText">操作成功</span>
+    </div>
+
+    <!-- 照片上传输入框(隐藏) -->
+    <input type="file" id="photoUpload" accept="image/*" class="hidden">
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 状态变量
+            let isEditMode = false;
+            let currentPhotoElement = null;
+            
+            // DOM元素
+            const editBtn = document.getElementById('editBtn');
+            const saveBtn = document.getElementById('saveBtn');
+            const exportBtn = document.getElementById('exportBtn');
+            const resetBtn = document.getElementById('resetBtn');
+            const notification = document.getElementById('notification');
+            const notificationText = document.getElementById('notificationText');
+            const photoUpload = document.getElementById('photoUpload');
+            const editableElements = document.querySelectorAll('.editable');
+            const changePhotoElements = document.querySelectorAll('.change-photo');
+            
+            // 切换编辑模式
+            editBtn.addEventListener('click', function() {
+                isEditMode = !isEditMode;
+                
+                if (isEditMode) {
+                    // 进入编辑模式
+                    editBtn.innerHTML = '<i class="fa fa-eye mr-2"></i>查看模式';
+                    editBtn.classList.remove('bg-primary', 'hover:bg-accent');
+                    editBtn.classList.add('bg-gray-600', 'hover:bg-gray-700');
+                    saveBtn.classList.remove('hidden');
+                    
+                    // 启用所有可编辑元素
+                    editableElements.forEach(el => {
+                        el.contentEditable = true;
+                        el.classList.add('border-b', 'border-dashed', 'border-gray-300', 'pb-1');
+                    });
+                    
+                    // 显示照片更换提示
+                    changePhotoElements.forEach(el => {
+                        el.classList.remove('opacity-0');
+                    });
+                    
+                    showNotification('已进入编辑模式，可以修改内容了');
+                } else {
+                    // 退出编辑模式
+                    editBtn.innerHTML = '<i class="fa fa-pencil mr-2"></i>编辑模式';
+                    editBtn.classList.remove('bg-gray-600', 'hover:bg-gray-700');
+                    editBtn.classList.add('bg-primary', 'hover:bg-accent');
+                    saveBtn.classList.add('hidden');
+                    
+                    // 禁用所有可编辑元素
+                    editableElements.forEach(el => {
+                        el.contentEditable = false;
+                        el.classList.remove('border-b', 'border-dashed', 'border-gray-300', 'pb-1');
+                    });
+                    
+                    // 隐藏照片更换提示
+                    changePhotoElements.forEach(el => {
+                        el.classList.add('opacity-0');
+                    });
+                    
+                    showNotification('已退出编辑模式');
+                }
+            });
+            
+            // 保存更改
+            saveBtn.addEventListener('click', function() {
+                // 收集表单数据
+                const formData = {
+                    department: document.getElementById('department').innerText,
+                    dateRange: document.getElementById('dateRange').innerText,
+                    leader: {
+                        name: document.querySelector('[data-role="leader-name"]').innerText,
+                        position: document.querySelector('[data-role="leader-position"]').innerText,
+                        responsibility: document.querySelector('[data-role="leader-responsibility"]').innerText
+                    },
+                    cleaners: [
+                        {
+                            name: document.querySelector('[data-role="cleaner-name-1"]').innerText,
+                            area: document.querySelector('[data-role="cleaner-area-1"]').innerText,
+                            schedule: document.querySelector('[data-role="cleaner-schedule-1"]').innerText
+                        },
+                        {
+                            name: document.querySelector('[data-role="cleaner-name-2"]').innerText,
+                            area: document.querySelector('[data-role="cleaner-area-2"]').innerText,
+                            schedule: document.querySelector('[data-role="cleaner-schedule-2"]').innerText
+                        },
+                        {
+                            name: document.querySelector('[data-role="cleaner-name-3"]').innerText,
+                            area: document.querySelector('[data-role="cleaner-area-3"]').innerText,
+                            schedule: document.querySelector('[data-role="cleaner-schedule-3"]').innerText
+                        }
+                    ],
+                    footerInfo: document.getElementById('footerInfo').innerText
+                };
+                
+                // 保存到本地存储
+                localStorage.setItem('sanitationDutyBoardData', JSON.stringify(formData));
+                
+                showNotification('值班牌信息已保存');
+            });
+            
+            // 重置数据
+            resetBtn.addEventListener('click', function() {
+                if (confirm('确定要重置所有信息吗？这将恢复到初始状态。')) {
+                    localStorage.removeItem('sanitationDutyBoardData');
+                    location.reload();
+                }
+            });
+            
+            // 照片更换功能
+            changePhotoElements.forEach(el => {
+                el.addEventListener('click', function(e) {
+                    if (isEditMode) {
+                        currentPhotoElement = this.previousElementSibling;
+                        photoUpload.click();
+                    }
+                });
+            });
+            
+            // 处理照片上传
+            photoUpload.addEventListener('change', function(e) {
+                if (currentPhotoElement && e.target.files.length > 0) {
+                    const file = e.target.files[0];
+                    const reader = new FileReader();
+                    
+                    reader.onload = function(e) {
+                        currentPhotoElement.src = e.target.result;
+                        showNotification('照片已更新');
+                    };
+                    
+                    reader.readAsDataURL(file);
+                }
+            });
+            
+            // 导出PDF
+            exportBtn.addEventListener('click', function() {
+                showNotification('正在准备PDF导出...');
+                
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF('p', 'mm', 'a4');
+                const dutyBoard = document.getElementById('dutyBoard');
+                
+                // 设置PDF为全出血模式（A4尺寸：210mm × 297mm）
+                html2canvas(dutyBoard, {
+                    scale: 2,
+                    useCORS: true,
+                    logging: false
+                }).then(canvas => {
+                    const imgData = canvas.toDataURL('image/jpeg', 1.0);
+                    const imgWidth = 210; // A4宽度
+                    const imgHeight = canvas.height * imgWidth / canvas.width;
+                    
+                    // 添加图像到PDF
+                    doc.addImage(imgData, 'JPEG', 0, 0, imgWidth, imgHeight);
+                    
+                    // 保存PDF
+                    doc.save('卫生值班牌.pdf');
+                    showNotification('PDF导出成功');
+                }).catch(err => {
+                    console.error('PDF导出失败:', err);
+                    showNotification('PDF导出失败，请重试', 'error');
+                });
+            });
+            
+            // 显示通知
+            function showNotification(message, type = 'success') {
+                notificationText.textContent = message;
+                
+                if (type === 'error') {
+                    notification.classList.remove('bg-green-500');
+                    notification.classList.add('bg-red-500');
+                } else {
+                    notification.classList.remove('bg-red-500');
+                    notification.classList.add('bg-green-500');
+                }
+                
+                notification.style.opacity = '1';
+                
+                setTimeout(() => {
+                    notification.style.opacity = '0';
+                }, 3000);
+            }
+            
+            // 从本地存储加载数据
+            function loadSavedData() {
+                const savedData = localStorage.getItem('sanitationDutyBoardData');
+                if (savedData) {
+                    try {
+                        const data = JSON.parse(savedData);
+                        
+                        // 填充数据
+                        document.getElementById('department').innerText = data.department || '行政部';
+                        document.getElementById('dateRange').innerText = data.dateRange || '2023年10月1日 - 2023年10月31日';
+                        
+                        if (data.leader) {
+                            document.querySelector('[data-role="leader-name"]').innerText = data.leader.name || '张明';
+                            document.querySelector('[data-role="leader-position"]').innerText = data.leader.position || '部门经理';
+                            document.querySelector('[data-role="leader-responsibility"]').innerText = data.leader.responsibility || '负责全面卫生监督工作';
+                        }
+                        
+                        if (data.cleaners && data.cleaners.length >= 3) {
+                            for (let i = 0; i < 3; i++) {
+                                const cleaner = data.cleaners[i];
+                                document.querySelector(`[data-role="cleaner-name-${i+1}"]`).innerText = cleaner.name || ['李华', '王芳', '赵伟'][i];
+                                document.querySelector(`[data-role="cleaner-area-${i+1}"]`).innerText = cleaner.area || ['一楼公共区域', '二楼办公区域', '三楼及卫生间'][i];
+                                document.querySelector(`[data-role="cleaner-schedule-${i+1}"]`).innerText = cleaner.schedule || ['周一、周四', '周二、周五', '周三、周六'][i];
+                            }
+                        }
+                        
+                        document.getElementById('footerInfo').innerText = data.footerInfo || '卫生监督电话：010-12345678 | 值班时间：工作日 8:00-18:00';
+                        
+                        showNotification('已加载保存的信息');
+                    } catch (e) {
+                        console.error('加载保存数据失败:', e);
+                        localStorage.removeItem('sanitationDutyBoardData');
+                    }
+                }
+            }
+            
+            // 初始化加载数据
+            loadSavedData();
+        });
+    </script>
+</body>
+</html>
