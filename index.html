@@ -362,12 +362,12 @@
                         const data = JSON.parse(savedData);
                         
                         // 填充数据
-                        document.getElementById('department').innerText = data.department || '行政部';
-                        document.getElementById('dateRange').innerText = data.dateRange || '2023年10月1日 - 2023年10月31日';
+                        document.getElementById('department').innerText = data.department || '商办事业部';
+                        document.getElementById('dateRange').innerText = data.dateRange || '2025年07月10日';
                         
                         if (data.leader) {
-                            document.querySelector('[data-role="leader-name"]').innerText = data.leader.name || '张明';
-                            document.querySelector('[data-role="leader-position"]').innerText = data.leader.position || '部门经理';
+                            document.querySelector('[data-role="leader-name"]').innerText = data.leader.name || '李亚丹';
+                            document.querySelector('[data-role="leader-position"]').innerText = data.leader.position || '商办事业部总经理';
                             document.querySelector('[data-role="leader-responsibility"]').innerText = data.leader.responsibility || '负责全面卫生监督工作';
                         }
                         
